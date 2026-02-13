@@ -1,0 +1,8 @@
+{
+  "gameId": "counter-clash",
+  "name": "Counter Clash",
+  "version": "1.0.0",
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "description": "A simple button-clicking race to reach the target number first."
+}

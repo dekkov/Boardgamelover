@@ -1,0 +1,10 @@
+{
+  "games": [
+    {
+      "gameId": "counter-clash",
+      "name": "Counter Clash",
+      "version": "1.0.0",
+      "path": "./counter-clash"
+    }
+  ]
+}
