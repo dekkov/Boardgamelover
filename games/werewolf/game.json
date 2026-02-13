@@ -1,0 +1,8 @@
+{
+  "gameId": "werewolf",
+  "name": "Werewolf",
+  "version": "1.0.0",
+  "minPlayers": 5,
+  "maxPlayers": 10,
+  "description": "A game of deception and deduction. Villagers must find the werewolves hiding among them before it is too late."
+}

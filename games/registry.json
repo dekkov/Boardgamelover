@@ -5,6 +5,12 @@
       "name": "Counter Clash",
       "version": "1.0.0",
       "path": "./counter-clash"
+    },
+    {
+      "gameId": "werewolf",
+      "name": "Werewolf",
+      "version": "1.0.0",
+      "path": "./werewolf"
     }
   ]
 }

@@ -106,7 +106,7 @@ export interface GameConfig {
 }
 
 // Game IDs that have a working frontend plugin (in games/<id>/Frontend.tsx)
-export const PLAYABLE_GAME_IDS: string[] = ['counter-clash'];
+export const PLAYABLE_GAME_IDS: string[] = ['counter-clash', 'werewolf'];
 
 export const AVAILABLE_GAMES: GameConfig[] = [
   {
