@@ -1,316 +1,94 @@
-# 🎲 Board Game Web Platform — Full Design Document (MVP)
+# Board Game Web Platform
 
-## 1. Project Description
+A browser-based multiplayer board game platform where users can browse games, create/join lobbies, and play games in real-time.
 
-### Goal
+## Tech Stack
 
-Build a **browser-based board game platform** where users can:
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + Radix UI components
+- **Routing**: React Router DOM
+- **Database & Auth**: Supabase (PostgreSQL + Auth + Realtime)
+- **Deployment**: Cloudflare Workers (static SPA + Worker for security headers)
+- **URL**: `bga.trhoang220703.workers.dev`
 
-- Browse and search games  
-- View a **detailed description page** for each game  
-- Create **private** or join **public** lobbies  
-- Wait in a **lobby (table room)** with chat  
-- Host starts the session  
-- All players transition into a **game room**  
-- Platform shows **game status + chat**  
-- Each **game plugin controls its own rules and UI**
+## Getting Started
 
-This is a **platform-first MVP** — focus is on:
+```bash
+npm install        # Install dependencies
+npm run dev        # Start development server on port 3000
+npm run build      # Build for production (outputs to /build)
+```
 
-✔ Lobbies  
-✔ Real-time tables  
-✔ Chat  
-✔ Navigation between pages  
-✔ Game plugin system  
+## Architecture
 
-NOT on full game rules yet.
+### Directory Structure
 
----
+```
+src/
+  api/              # Supabase data access (tables, chat, game moves)
+  components/       # React components (auth/, ui/, GameRenderer, Shared)
+  contexts/         # React Context providers (AuthContext)
+  hooks/            # Custom hooks (useAuth, useTableRealtime, usePresence)
+  lib/              # Utilities (supabase client, pluginLoader, validation)
+  pages/            # Route pages (Home, GameDetail, Lobby, GameRoom)
+  types/            # TypeScript types (database.types.ts, plugin.ts)
+  worker.ts         # Cloudflare Worker for security headers
+games/
+  counter-clash/    # Simple MVP game (button-clicking race)
+  werewolf/         # Social deduction game (5-10 players)
+  love-letter/      # Card game of deduction and luck (2-4 players)
+```
 
-## 2. Core Philosophy
-
-### 🧩 Platform vs Game Responsibilities
+### Platform vs Game Plugin
 
 | Platform Handles | Game Plugin Handles |
-|------------------|--------------------|
-| Tables & lobbies | Game rules |
-| Player presence | Turn logic (or no turns) |
-| Chat | Game board rendering |
-| Navigation | Legal move validation |
+|---|---|
+| Tables & lobbies | Game rules & logic |
+| Player presence | Turn/phase management |
+| Chat | Board rendering |
+| Navigation & layout | Move validation |
 | State syncing | Win conditions |
-| UI layout around game | Game-specific UI |
 
-**Important:**  
-The platform does **NOT enforce turn-based-only**.  
-Each game decides how turns/phases work.
+### Game Plugin System
 
----
+Each game lives in `games/<gameId>/` with three files:
 
-## 3. Tech Stack
+- **`game.json`** — Manifest (name, player counts, description)
+- **`backend.ts`** — State machine (`createInitialState`, `validateMove`, `applyMove`, `checkWinCondition`, `getGameStatus`)
+- **`Frontend.tsx`** — React component receiving `GameComponentProps` (gameState, players, currentUserId, onMove)
 
-### Frontend
-- React 18 + TypeScript + Vite
-- Tailwind CSS + Radix UI
-- Socket.IO client (planned)
+Plugins are loaded via Vite dynamic imports and cached in memory. Each game manages its own background, layout, and visual theme.
 
-### Backend
-- Node.js + Express/Fastify (planned)
-- Socket.IO server (planned)
-- In-memory store (MVP - currently mock service)
-- Database: Supabase/PostgreSQL (integration in progress)
+### Available Games
 
----
+| Game | Players | Description |
+|---|---|---|
+| **Counter Clash** | 2-4 | Simple button-clicking race (MVP demo) |
+| **Werewolf** | 5-10 | Social deduction with roles (werewolf, seer, medic, villager). 9-phase night/day cycle with voting |
+| **Love Letter** | 2-4 | Card game of risk and deduction. 8 unique card types, multi-round play (2 tokens to win), BGA-style royal-themed UI |
 
-## 4. Global Navigation Rules
+### Core Pages
 
-Navigation NEVER equals leaving a table.
+1. **Home (`/`)** — Browse and search games
+2. **Game Detail (`/games/:gameId`)** — Game info, create/join lobbies
+3. **Lobby (`/table/:tableId`)** — Waiting room with chat
+4. **Game Room (`/table/:tableId/play`)** — Active gameplay
 
-| Action | Effect |
-|--------|--------|
-| Home button | Navigate only |
-| Back to Lobby | Navigate only |
-| Leave Table button | Actually leave |
+### Real-time
 
-### Persistent Banner (When in a Table)
+- **Supabase Realtime** for table/player/chat updates (postgres_changes)
+- **Supabase Presence** for online user indicators
+- Game state syncs automatically when any player makes a move
 
-If a user navigates away from a table:
+### Security
 
-> **“You are in an active table: [Game Name] — Return”**
+- Cloudflare Worker adds security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+- Automatic Cloudflare DDoS protection (L3/4/7)
+- Row Level Security (RLS) on all database tables
+- Atomic table join via RPC to prevent race conditions
 
-Appears on all pages until they leave.
+## Navigation Rules
 
----
-
-# 🌐 PAGE STRUCTURE & DESIGN
-
----
-
-## 5. Homepage `/`
-
-### Purpose
-Discover games (BGA-style browsing)
-
-### Layout
-
-**Top Navigation**
-- Logo
-- Search bar
-- (Later: profile)
-
-**Main Sections**
-- Featured game banner
-- Game rows:
-  - New
-  - Trending
-  - Recommended
-
-### Game Card Design
-- Cover image
-- Name
-- Player count icon
-- Avg time icon
-- Tags (e.g. Strategy, Bluffing)
-- **Discover** button
-
-### Functionality
-- Search filters games
-- Clicking a card → `/games/[gameId]`
-
----
-
-## 6. Game Description Page `/games/[gameId]`
-
-### Purpose
-Show detailed game info + entry point to play
-
-### Content
-- Name
-- Author / designer
-- Description
-- Rules section / link
-- Player count (min–max)
-- Average play time
-- Tags / type / complexity
-
-### Play Section
-
-Buttons:
-- **Create Private Lobby**
-- **Join Public Lobby**
-
-### Functionality
-
-| Action | Result |
-|--------|--------|
-| Create Private | New table → lobby page |
-| Join Public | Join existing or create → lobby page |
-
----
-
-## 7. Lobby Page `/table/[tableId]`
-
-### Purpose
-Waiting room before game starts
-
-### Layout
-
-**Top Bar**
-- Home (navigation only)
-- Game Name
-- Table ID
-- Status badge (Waiting / In Game)
-
-**Left Panel**
-- Player slots (min–max from game config)
-- Host indicator
-- Invite link (private only)
-- **Start Game** button (host only)
-
-**Right Panel**
-- Chat
-
-**Footer**
-- **Leave Table** button
-
-### Functionality
-- Real-time player list
-- Host reassigned if host leaves
-- Start enabled when enough players
-- Start → server creates initial game state → redirect to game room
-
----
-
-## 8. Game Room Page `/table/[tableId]/play`
-
-### Purpose
-Actual gameplay screen
-
-### Layout
-
-**Top Bar**
-- Home (navigation)
-- Back to Lobby (navigation)
-- Game Name + Table ID
-
-**Left Sidebar (Platform)**
-- Game status:
-  - Phase
-  - Current player (if game uses turns)
-
-**Center (Plugin-Owned)**
-- Game board
-- Game actions
-- Game-specific UI
-
-**Right Sidebar (Platform)**
-- Chat panel
-
-**Footer**
-- **Leave Table**
-
----
-
-## 9. Server-Authoritative Model (MVP Version)
-
-We implement **the structure**, not full rules yet.
-
-### Server Owns
-- Table state
-- Player list
-- Game state object
-
-### Client Flow
-1. Client sends move
-2. Server updates state
-3. Server broadcasts updated state
-4. Clients re-render
-
-### Dummy Plugin for MVP
-A simple “counter game” to prove pipeline works.
-
----
-
-# 🧠 GAME PLUGIN SYSTEM
-
-## 10. Plugin Folder Structure
-
-/games
-/gameId
-game.json
-frontend.tsx
-backend.js
-
-
-## game.json
-
-```json
-{
-  "gameId": "werewolf",
-  "name": "Werewolf",
-  "minPlayers": 5,
-  "maxPlayers": 10,
-  "avgTime": 30,
-  "tags": ["Bluffing", "Party"],
-  "description": "...",
-  "rules": "markdown or URL"
-}
-
-# Backend Interface
-createInitialState(players)
-validateMove(state, playerId, move)
-applyMove(state, playerId, move)
-getStatus(state)
-isGameOver(state)
-
-# Frontend Interface
-<GameRenderer
-   state={state}
-   you={playerInfo}
-   sendMove={sendMove}
-/>
-
-# Real-time Events
-| Event         | Purpose      |
-| ------------- | ------------ |
-| table_join    | Join table   |
-| table_leave   | Leave table  |
-| chat_send     | Send message |
-| start_game    | Host starts  |
-| submit_move   | Game action  |
-| request_state | Resync       |
-
-| Event          | Purpose             |
-| -------------- | ------------------- |
-| table_snapshot | Full table info     |
-| player_joined  | Update players      |
-| chat_message   | Chat                |
-| game_started   | Move to play screen |
-| state_updated  | New game state      |
-| move_rejected  | Invalid move        |
-
-# Data Model
-
-table: tableId
-gameId
-visibility (public/private)
-status (waiting/in_game/finished)
-players[]
-gameState
-createdAt
-inviteCode
-
-playerId (UUID)
-displayName (Guest####)
-
-# Design Style
-
-Background textures: wood or felt
-
-Cards resemble board game boxes
-
-Buttons are bold and friendly
-
-Sidebars look like tabletop accessories
-
-Chat styled like a notebook panel
-
+- Navigation between pages does **not** leave a table
+- Only explicit "Leave Table" action removes user from table
+- Active table banner appears on all pages when user is in a table
