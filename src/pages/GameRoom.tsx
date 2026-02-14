@@ -177,29 +177,16 @@ export function GameRoomPage() {
           </div>
         </div>
 
-        {/* Center: Game Board — PRESERVED emerald/felt surface */}
-        <div className="flex-1 bg-slate-100 relative flex flex-col overflow-hidden">
-           {/* Wooden border effect */}
-           <div className="absolute inset-0 border-[20px] border-[#3e2723] pointer-events-none opacity-50 z-0 hidden md:block"></div>
-
-           <div className="relative z-10 flex-1 p-4 md:p-8 overflow-auto flex items-center justify-center">
-             <div className="w-full max-w-4xl aspect-video bg-[#2c3e50] rounded-xl shadow-2xl overflow-hidden border-4 md:border-8 border-slate-700 relative">
-                {/* Felt surface */}
-                <div className="absolute inset-0 bg-emerald-900 opacity-50 bg-[url('https://www.transparenttextures.com/patterns/felt.png')]"></div>
-
-                {/* Game Content */}
-                <div className="relative z-20 h-full p-4 md:p-6">
-                   <GameRenderer
-                      gameId={table.game_id}
-                      gameState={table.game_state}
-                      currentUserId={user?.id || ''}
-                      isMyTurn={true}
-                      onMove={handleMove}
-                      players={table.players}
-                   />
-                </div>
-             </div>
-           </div>
+        {/* Center: Game Board */}
+        <div className="flex-1 relative flex flex-col overflow-hidden">
+           <GameRenderer
+              gameId={table.game_id}
+              gameState={table.game_state}
+              currentUserId={user?.id || ''}
+              isMyTurn={true}
+              onMove={handleMove}
+              players={table.players}
+           />
         </div>
 
         {/* Right Sidebar: Chat (desktop) */}

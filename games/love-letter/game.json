@@ -1,0 +1,8 @@
+{
+  "gameId": "love-letter",
+  "name": "Love Letter",
+  "version": "1.0.0",
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "description": "A game of risk, deduction, and luck. Get your love letter to the Princess!"
+}
