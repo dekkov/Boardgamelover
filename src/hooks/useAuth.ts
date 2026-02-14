@@ -136,6 +136,16 @@ export function useAuth() {
   const signUp = useCallback(async (email: string, password: string, username: string) => {
     console.log('Starting signup for:', email, username)
 
+    // Step 0: Check username availability before creating auth user
+    // Uses SECURITY DEFINER RPC so anon role can check
+    const { data: isAvailable, error: rpcError } = await supabase.rpc('check_username_available', {
+      username_to_check: username,
+    })
+
+    if (rpcError || isAvailable === false) {
+      throw new Error('Username is already taken. Please choose a different one.')
+    }
+
     // Step 1: Create auth user
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -169,11 +179,24 @@ export function useAuth() {
           .single()
 
         if (profileError) {
-          // If profile already exists (duplicate key), that's fine
+          // Duplicate on id = profile already exists for this user (trigger created it), that's fine
+          // Duplicate on username = someone else took it between our check and now
           if (profileError.code === '23505' || profileError.message.includes('duplicate')) {
-            console.log('Profile already exists (duplicate key)')
-            profileCreated = true
-            break
+            // Check if a profile already exists for THIS user
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id, username')
+              .eq('id', data.user.id)
+              .maybeSingle()
+
+            if (existingProfile) {
+              console.log('Profile already exists for this user (trigger created it)')
+              profileCreated = true
+              break
+            } else {
+              // Duplicate was on username — another user has it
+              throw new Error('Username is already taken. Please choose a different one.')
+            }
           }
           console.error('Profile creation error:', profileError)
           if (attempt === 2) throw profileError // Throw on last attempt
@@ -184,10 +207,12 @@ export function useAuth() {
         }
       } catch (err: any) {
         console.error(`Profile creation attempt ${attempt + 1} failed:`, err)
-        if (attempt < 2) {
+        if (attempt < 2 && !err.message?.includes('already taken')) {
           await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
         } else {
-          throw new Error(`Failed to create profile after 3 attempts: ${err.message}`)
+          throw err.message?.includes('already taken')
+            ? err
+            : new Error(`Failed to create profile after 3 attempts: ${err.message}`)
         }
       }
     }

@@ -106,7 +106,7 @@ export interface GameConfig {
 }
 
 // Game IDs that have a working frontend plugin (in games/<id>/Frontend.tsx)
-export const PLAYABLE_GAME_IDS: string[] = ['counter-clash', 'werewolf'];
+export const PLAYABLE_GAME_IDS: string[] = ['counter-clash', 'werewolf', 'love-letter'];
 
 export const AVAILABLE_GAMES: GameConfig[] = [
   {
@@ -118,7 +118,7 @@ export const AVAILABLE_GAMES: GameConfig[] = [
     tags: ['Bluffing', 'Party'],
     description: 'A game of deception and deduction. Villagers must find the werewolves hiding among them before it is too late.',
     author: 'Party Games Inc.',
-    imageUrl: 'https://images.unsplash.com/photo-1762838362179-1718fce76d22?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXJkJTIwZ2FtZSUyMGZhbnRhc3klMjBhcnR8ZW58MXx8fHwxNzcwOTIzNTM5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: 'https://pub-23382708b17c495f828b2588fa5dd8b6.r2.dev/games/werewolf/card-thumbnail.jpg',
   },
   {
     gameId: 'counter-clash',
@@ -129,7 +129,18 @@ export const AVAILABLE_GAMES: GameConfig[] = [
     tags: ['Strategy', 'Quick'],
     description: 'A simple MVP game where players compete to reach a target number first.',
     author: 'Platform Demo',
-    imageUrl: 'https://images.unsplash.com/photo-1642284474435-aba7be889406?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWNlJTIwYW5kJTIwbWVlcGxlfGVufDF8fHx8MTc3MDkyMzUzOXww&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: 'https://pub-23382708b17c495f828b2588fa5dd8b6.r2.dev/games/counter-clash/card-thumbnail.jpg',
+  },
+  {
+    gameId: 'love-letter',
+    name: 'Love Letter',
+    minPlayers: 2,
+    maxPlayers: 4,
+    avgTime: 20,
+    tags: ['Deduction', 'Card Game'],
+    description: 'A game of risk, deduction, and luck. Get your love letter to the Princess!',
+    author: 'AEG',
+    imageUrl: 'https://pub-23382708b17c495f828b2588fa5dd8b6.r2.dev/games/love-letter/card-thumbnail.jpg',
   },
   {
     gameId: 'catan-clone',
@@ -140,6 +151,6 @@ export const AVAILABLE_GAMES: GameConfig[] = [
     tags: ['Strategy', 'Economy'],
     description: 'Build roads, settlements, and cities in this classic resource management game.',
     author: 'Board Masters',
-    imageUrl: 'https://images.unsplash.com/photo-1758691031197-3ce709db9640?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZW9wbGUlMjBwbGF5aW5nJTIwYm9hcmQlMjBnYW1lcyUyMGhhcHB5fGVufDF8fHx8MTc3MDkyMzUzOXww&ixlib=rb-4.1.0&q=80&w=1080',
+    imageUrl: 'https://pub-23382708b17c495f828b2588fa5dd8b6.r2.dev/games/catan-clone/card-thumbnail.jpg',
   }
 ];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -20,6 +20,35 @@ export function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const usernameCheckTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const checkUsernameAvailability = useCallback(async (value: string) => {
+    // Skip check if username hasn't changed from current profile
+    if (profile && value === profile.username) {
+      setCheckingUsername(false);
+      return;
+    }
+
+    setCheckingUsername(true);
+    try {
+      const { data, error } = await supabase.rpc('check_username_available', {
+        username_to_check: value,
+      });
+
+      if (error) {
+        console.error('Username check error:', error);
+        return;
+      }
+
+      // data is true if available, false if taken
+      if (data === false) {
+        setUsernameError('Username is already taken');
+      }
+    } finally {
+      setCheckingUsername(false);
+    }
+  }, [profile]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -45,7 +74,20 @@ export function ProfilePage() {
 
   const handleUsernameChange = (value: string) => {
     setUsername(value);
-    setUsernameError(validateUsername(value));
+    const validationError = validateUsername(value);
+    setUsernameError(validationError);
+
+    // Clear any pending debounce
+    if (usernameCheckTimer.current) {
+      clearTimeout(usernameCheckTimer.current);
+    }
+
+    // Only check availability if basic validation passes
+    if (!validationError) {
+      usernameCheckTimer.current = setTimeout(() => {
+        checkUsernameAvailability(value);
+      }, 500);
+    }
   };
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,6 +237,7 @@ export function ProfilePage() {
                 } bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 text-sm text-slate-700 transition-all`}
                 placeholder="your_username"
               />
+              {checkingUsername && <p className="text-xs text-slate-400">Checking availability...</p>}
               {usernameError && <p className="text-xs text-red-500">{usernameError}</p>}
             </div>
 
@@ -225,7 +268,7 @@ export function ProfilePage() {
             {/* Save Button */}
             <button
               onClick={handleSave}
-              disabled={saving || !!usernameError}
+              disabled={saving || !!usernameError || checkingUsername}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />

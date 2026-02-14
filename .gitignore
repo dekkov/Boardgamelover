@@ -55,6 +55,12 @@ Thumbs.db
 *.md
 !README.md
 
+# Supabase migrations
+supabase/migrations/
+
+# Wrangler
+.wrangler/
+
 # Temporary files
 *.tmp
 *.temp

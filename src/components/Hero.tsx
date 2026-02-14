@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Zap, Trophy, Award, Dice5 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
       {/* Animated background blobs */}
@@ -26,12 +28,9 @@ export function Hero() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-2">
             <button
-              onClick={() => document.getElementById('browse')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => navigate('/games')}
               className="px-8 py-3.5 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-lg shadow-lg shadow-blue-900/50 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
-              Play Now for Free
-            </button>
-            <button className="px-8 py-3.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 text-white font-medium rounded-lg backdrop-blur-sm transition-all flex items-center justify-center gap-2">
               Browse Games <ArrowRight className="h-4 w-4" />
             </button>
           </div>

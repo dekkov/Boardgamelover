@@ -11,6 +11,12 @@
       "name": "Werewolf",
       "version": "1.0.0",
       "path": "./werewolf"
+    },
+    {
+      "gameId": "love-letter",
+      "name": "Love Letter",
+      "version": "1.0.0",
+      "path": "./love-letter"
     }
   ]
 }
