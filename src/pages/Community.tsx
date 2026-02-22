@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useAuthContext } from '../contexts/AuthContext'
 import { getForumPosts, createForumPost } from '../api/forum'
 import { ForumPostWithDetails } from '../types'
+import { GAME_COLORS, GAME_NAMES, formatRelativeTime } from '../lib/forumUtils'
 import {
   Dialog,
   DialogContent,
@@ -21,28 +22,6 @@ const GAME_FILTERS: { label: string; value: string | null | undefined }[] = [
   { label: 'Love Letter', value: 'love-letter' },
   { label: 'Counter Clash', value: 'counter-clash' },
 ]
-
-const GAME_COLORS: Record<string, string> = {
-  'werewolf': 'bg-purple-100 text-purple-700',
-  'love-letter': 'bg-pink-100 text-pink-700',
-  'counter-clash': 'bg-blue-100 text-blue-700',
-}
-
-const GAME_NAMES: Record<string, string> = {
-  'werewolf': 'Werewolf',
-  'love-letter': 'Love Letter',
-  'counter-clash': 'Counter Clash',
-}
-
-function formatRelativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
 
 export function CommunityPage() {
   const { user } = useAuthContext()

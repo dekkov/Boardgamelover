@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { MessageSquare } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { getForumPosts } from '../api/forum';
-import { ForumPostWithDetails } from '../types';
-
-function formatRelativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
+import React, { useEffect, useState } from 'react'
+import { MessageSquare } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { getForumPosts } from '../api/forum'
+import { ForumPostWithDetails } from '../types'
+import { formatRelativeTime } from '../lib/forumUtils'
 
 export function CommunityFeed() {
-  const [posts, setPosts] = useState<ForumPostWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<ForumPostWithDetails[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     getForumPosts()
       .then(data => setPosts(data.slice(0, 3)))
       .catch(err => console.error('❌ CommunityFeed: Failed to load posts:', err))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -69,5 +60,5 @@ export function CommunityFeed() {
         )}
       </div>
     </div>
-  );
+  )
 }

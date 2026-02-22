@@ -26,10 +26,10 @@ export async function getForumPosts(gameId?: string | null): Promise<ForumPostWi
 
   if (countError) throw countError
 
-  const countMap: Record<string, number> = {}
-  for (const row of (counts || [])) {
-    countMap[row.post_id] = (countMap[row.post_id] || 0) + 1
-  }
+  const countMap = (counts || []).reduce<Record<string, number>>((acc, row) => {
+    acc[row.post_id] = (acc[row.post_id] || 0) + 1
+    return acc
+  }, {})
 
   return posts.map(p => ({
     ...p,

@@ -6,27 +6,7 @@ import { useAuthContext } from '../contexts/AuthContext'
 import { getForumPost, getForumReplies, createForumReply } from '../api/forum'
 import { ForumPostWithDetails, ForumReplyWithProfile, Profile } from '../types'
 import { supabase } from '../lib/supabase'
-
-const GAME_COLORS: Record<string, string> = {
-  'werewolf': 'bg-purple-100 text-purple-700',
-  'love-letter': 'bg-pink-100 text-pink-700',
-  'counter-clash': 'bg-blue-100 text-blue-700',
-}
-
-const GAME_NAMES: Record<string, string> = {
-  'werewolf': 'Werewolf',
-  'love-letter': 'Love Letter',
-  'counter-clash': 'Counter Clash',
-}
-
-function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+import { GAME_COLORS, GAME_NAMES, formatTime } from '../lib/forumUtils'
 
 function Avatar({ profile }: { profile: Pick<Profile, 'username' | 'display_name' | 'avatar_url'> }) {
   if (profile.avatar_url) {
