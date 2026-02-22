@@ -1,6 +1,7 @@
 # Board Game Web Platform
 
 A browser-based multiplayer board game platform where users can browse games, create/join lobbies, and play games in real-time.
+
 Live Demo: https://bga.trhoang220703.workers.dev/
 
 ## Tech Stack
