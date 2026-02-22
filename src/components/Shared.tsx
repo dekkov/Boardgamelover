@@ -29,8 +29,7 @@ export function Layout({ children }: LayoutProps) {
   const navLinks = [
     { label: 'Play Now', path: '/', comingSoon: false },
     { label: 'Games', path: '/games', comingSoon: false },
-    { label: 'Community', path: null, comingSoon: true },
-    { label: 'Forums', path: null, comingSoon: true },
+    { label: 'Community', path: '/community', comingSoon: false },
   ];
 
   return (
@@ -67,7 +66,8 @@ export function Layout({ children }: LayoutProps) {
               <nav className="hidden md:flex items-center gap-1">
                 {navLinks.map(link => {
                   const isActive = (link.label === 'Play Now' && location.pathname === '/') ||
-                    (link.label === 'Games' && location.pathname === '/games');
+                    (link.label === 'Games' && location.pathname === '/games') ||
+                    (link.label === 'Community' && location.pathname.startsWith('/community'));
 
                   if (link.comingSoon) {
                     return (

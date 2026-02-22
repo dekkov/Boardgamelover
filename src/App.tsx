@@ -8,6 +8,8 @@ import { LobbyPage } from './pages/Lobby';
 import { GameRoomPage } from './pages/GameRoom';
 import { ProfilePage } from './pages/Profile';
 import { GamesPage } from './pages/Games';
+import { CommunityPage } from './pages/Community';
+import { ForumThreadPage } from './pages/ForumThread';
 import { Toaster } from 'sonner';
 
 export default function App() {
@@ -22,6 +24,8 @@ export default function App() {
             <Route path="/table/:tableId" element={<LobbyPage />} />
             <Route path="/table/:tableId/play" element={<GameRoomPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/:postId" element={<ForumThreadPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

@@ -71,6 +71,36 @@ export interface TableWithDetails extends GameTable {
 }
 
 // ==========================================
+// Forum types
+// ==========================================
+
+export interface ForumPost {
+  id: string
+  user_id: string
+  title: string
+  content: string
+  game_id: string | null
+  created_at: string
+}
+
+export interface ForumReply {
+  id: string
+  post_id: string
+  user_id: string
+  content: string
+  created_at: string
+}
+
+export interface ForumPostWithDetails extends ForumPost {
+  profile: Profile
+  reply_count: number
+}
+
+export interface ForumReplyWithProfile extends ForumReply {
+  profile: Profile
+}
+
+// ==========================================
 // Legacy compatibility (for mock -> real transition)
 // ==========================================
 
