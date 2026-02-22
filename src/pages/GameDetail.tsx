@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AVAILABLE_GAMES, PLAYABLE_GAME_IDS, GameTable } from '../types';
-import { Users, Clock, Play, Share2, RefreshCw } from 'lucide-react';
+import { Users, Clock, Play, Share2, RefreshCw, Lock } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useAuthContext } from '../contexts/AuthContext';
 import { AuthModal } from '../components/auth/AuthModal';
-import { createTable, getPublicTables, joinTable } from '../api/tables';
+import { createTable, getWaitingTables, joinTable } from '../api/tables';
 import { toast } from 'sonner';
 
 export function GameDetailPage() {
@@ -23,7 +23,7 @@ export function GameDetailPage() {
   const fetchPublicTables = useCallback(async () => {
     if (gameId) {
       try {
-        const tables = await getPublicTables(gameId);
+        const tables = await getWaitingTables(gameId);
         console.log('📋 Fetched public tables:', tables);
         setPublicTables(tables);
       } catch (err) {
@@ -43,7 +43,7 @@ export function GameDetailPage() {
 
   const isPlayable = PLAYABLE_GAME_IDS.includes(game.gameId);
 
-  const handleCreateLobby = async () => {
+  const handleCreateLobby = async (visibility: 'public' | 'private' = 'public') => {
     if (!user) {
       setAuthModalOpen(true);
       return;
@@ -51,7 +51,7 @@ export function GameDetailPage() {
 
     setCreating(true);
     try {
-      const table = await createTable(game.gameId);
+      const table = await createTable(game.gameId, visibility);
       navigate(`/table/${table.id}`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create table');
@@ -60,9 +60,15 @@ export function GameDetailPage() {
     }
   };
 
-  const handleJoinPublic = async (tableId: string) => {
+  const handleJoinPublic = async (tableId: string, visibility: 'public' | 'private') => {
     if (!user) {
       setAuthModalOpen(true);
+      return;
+    }
+
+    if (visibility === 'private') {
+      // Navigate to lobby; the password prompt will be shown there
+      navigate(`/table/${tableId}`);
       return;
     }
 
@@ -108,14 +114,24 @@ export function GameDetailPage() {
 
                 <div className="space-y-3">
                   {isPlayable ? (
-                    <button
-                      onClick={handleCreateLobby}
-                      disabled={creating}
-                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50"
-                    >
-                      <Play size={20} fill="currentColor" />
-                      {creating ? 'Creating...' : 'Create Table'}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleCreateLobby('public')}
+                        disabled={creating}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50"
+                      >
+                        <Play size={20} fill="currentColor" />
+                        {creating ? 'Creating...' : 'Create Table'}
+                      </button>
+                      <button
+                        onClick={() => handleCreateLobby('private')}
+                        disabled={creating}
+                        className="w-full py-3 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50"
+                      >
+                        <Lock size={18} />
+                        {creating ? 'Creating...' : 'Create Private Table'}
+                      </button>
+                    </>
                   ) : (
                     <div className="space-y-2">
                       <button
@@ -150,11 +166,14 @@ export function GameDetailPage() {
                       publicTables.map((t: any) => (
                         <button
                           key={t.id}
-                          onClick={() => handleJoinPublic(t.id)}
+                          onClick={() => handleJoinPublic(t.id, t.visibility)}
                           className="w-full py-3 px-3 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg text-sm transition-colors border border-slate-200"
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold">{t.host?.display_name || t.host?.username || 'Unknown'}</span>
+                            <div className="flex items-center gap-1.5">
+                              {t.visibility === 'private' && <Lock size={12} className="text-slate-500" />}
+                              <span className="font-bold">{t.host?.display_name || t.host?.username || 'Unknown'}</span>
+                            </div>
                             <span className="text-blue-600 font-bold flex items-center gap-1 text-xs">
                               <Share2 size={12} /> Join
                             </span>
@@ -162,6 +181,7 @@ export function GameDetailPage() {
                           <div className="flex items-center gap-2 text-xs text-slate-500">
                             <Users size={12} />
                             <span>{t.playerCount || 0}/{t.max_players} players</span>
+                            {t.visibility === 'private' && <span className="text-slate-400">· Private</span>}
                           </div>
                         </button>
                       ))

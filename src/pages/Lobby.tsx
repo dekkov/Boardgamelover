@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AVAILABLE_GAMES } from '../types';
 import { ChatPanel } from '../components/Shared';
-import { Users, Copy, Play, ArrowLeft, LogOut } from 'lucide-react';
+import { Users, Copy, Play, ArrowLeft, LogOut, Lock } from 'lucide-react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useTableRealtime, usePresence } from '../hooks/useTableRealtime';
 import { joinTable, leaveTable as apiLeaveTable, startGame } from '../api/tables';
@@ -14,24 +14,54 @@ import { toast } from 'sonner';
 export function LobbyPage() {
   const { tableId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
   const { table, loading, error } = useTableRealtime(tableId);
   const onlineUsers = usePresence(tableId, user?.id);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const isLeavingRef = React.useRef(false);
+  const isLeavingRef = useRef(false);
+  const joiningRef = useRef(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+
+  // Redirect non-members away from in_game private tables
+  useEffect(() => {
+    if (!table || !user) return
+    const isInTable = table.players.some(p => p.user_id === user.id)
+    if (table.visibility === 'private' && table.status === 'in_game' && !isInTable) {
+      toast.error('This game has already started.')
+      navigate('/')
+    }
+  }, [table?.status, table?.visibility, user, navigate])
+
+  const performJoin = (tid: string) => {
+    joiningRef.current = true
+    setJoining(true)
+    joinTable(tid)
+      .catch(err => toast.error(err.message))
+      .finally(() => { joiningRef.current = false; setJoining(false) })
+  }
 
   // Auto-join if not already in table
   useEffect(() => {
-    if (!tableId || !user || !table || isLeavingRef.current) return
+    if (!tableId || !user || !table || isLeavingRef.current || joiningRef.current) return
     const isInTable = table.players.some(p => p.user_id === user.id)
-    if (!isInTable && table.status === 'waiting' && !joining) {
-      setJoining(true)
-      joinTable(tableId)
-        .catch(err => toast.error(err.message))
-        .finally(() => setJoining(false))
+    if (!isInTable && table.status === 'waiting') {
+      if (table.visibility === 'private') {
+        // Check if a valid token was provided in the URL (from invite link)
+        const token = searchParams.get('token')
+        if (token && token === table.invite_code) {
+          performJoin(tableId)
+        } else {
+          setShowPasswordPrompt(true)
+        }
+      } else {
+        performJoin(tableId)
+      }
     }
-  }, [tableId, user, table?.players.length])
+  }, [tableId, user, table?.players.length, table?.visibility])
 
   // Redirect to game room if game starts
   useEffect(() => {
@@ -68,8 +98,25 @@ export function LobbyPage() {
   const canStart = table.players.length >= (game?.minPlayers || 1);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Link copied to clipboard!');
+    if (table?.visibility === 'private' && table.invite_code) {
+      const inviteUrl = `${window.location.origin}/join/${tableId}?token=${table.invite_code}`;
+      navigator.clipboard.writeText(inviteUrl);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+    toast.success('Invite link copied to clipboard!');
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!tableId || !table) return
+    if (passwordInput !== table.invite_code) {
+      setPasswordError('Incorrect password. Please try again.')
+      return
+    }
+    setPasswordError('')
+    setShowPasswordPrompt(false)
+    performJoin(tableId)
   };
 
   const handleLeave = async () => {
@@ -141,6 +188,47 @@ export function LobbyPage() {
     }
   };
 
+  // Password prompt overlay for private tables
+  if (showPasswordPrompt && table) {
+    return (
+      <div className="bg-slate-50 h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-8 w-full max-w-sm space-y-6">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
+              <Lock size={28} className="text-slate-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">Private Lobby</h2>
+            <p className="text-sm text-slate-500">Enter the room password to join this private table.</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={passwordInput}
+              onChange={e => { setPasswordInput(e.target.value); setPasswordError(''); }}
+              placeholder="Room password"
+              autoFocus
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+            >
+              Join Table
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="w-full py-2.5 text-slate-500 hover:text-slate-700 text-sm transition-colors"
+            >
+              Go Back
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-slate-50 h-[calc(100vh-64px)] flex flex-col">
       <div className="max-w-7xl mx-auto w-full px-4 py-6 flex flex-col flex-1 overflow-hidden">
@@ -152,6 +240,7 @@ export function LobbyPage() {
             </button>
             <div>
               <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                {table.visibility === 'private' && <Lock size={16} className="text-slate-500" />}
                 {game?.name} <span className="text-slate-400 font-normal">#{table.id.substring(0, 6)}</span>
               </h1>
               <div className="flex items-center gap-2 text-sm">

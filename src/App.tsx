@@ -8,6 +8,7 @@ import { LobbyPage } from './pages/Lobby';
 import { GameRoomPage } from './pages/GameRoom';
 import { ProfilePage } from './pages/Profile';
 import { GamesPage } from './pages/Games';
+import { JoinPage } from './pages/JoinPage';
 import { Toaster } from 'sonner';
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/table/:tableId" element={<LobbyPage />} />
             <Route path="/table/:tableId/play" element={<GameRoomPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/join/:tableId" element={<JoinPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

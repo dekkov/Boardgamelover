@@ -18,6 +18,7 @@ export async function createTable(
       host_id: user.id,
       status: 'waiting',
       visibility,
+      invite_code: visibility === 'private' ? crypto.randomUUID() : null,
       max_players: gameConfig.maxPlayers,
       game_state: {},
     })
@@ -136,7 +137,7 @@ export async function getTable(tableId: string): Promise<TableWithDetails | null
   } as TableWithDetails
 }
 
-export async function getPublicTables(gameId?: string): Promise<any[]> {
+export async function getWaitingTables(gameId?: string): Promise<any[]> {
   let query = supabase
     .from('game_tables')
     .select(`
@@ -145,7 +146,6 @@ export async function getPublicTables(gameId?: string): Promise<any[]> {
       table_players(id)
     `)
     .eq('status', 'waiting')
-    .eq('visibility', 'public')
     .order('created_at', { ascending: false })
 
   if (gameId) {
