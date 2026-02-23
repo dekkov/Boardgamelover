@@ -135,6 +135,48 @@ export interface Database {
           move_number?: number
         }
       }
+      forum_posts: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          content: string
+          game_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          content: string
+          game_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          title?: string
+          content?: string
+          game_id?: string | null
+        }
+      }
+      forum_replies: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          content?: string
+        }
+      }
     }
     Functions: {
       join_table: {
