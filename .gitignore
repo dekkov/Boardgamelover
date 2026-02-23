@@ -49,7 +49,9 @@ Thumbs.db
 *.sublime-workspace
 
 # Claude Code memory bank and settings
-.claude/
+.claude/agents/*
+.claude/mcp/*
+.claude/worktrees/*
 
 # Markdown files (except README.md)
 *.md
